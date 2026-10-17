@@ -4,10 +4,10 @@ const db = {
         { id: 2, name: "שר הטבעות", category: "פנטזיה", price: 90, isBorrowed: true, borrowDate: "2026-04-01", clientId: 101 },
         { id: 3, name: "תולדות הזמן", category: "מדע", price: 60, isBorrowed: false, borrowDate: null, clientId: null }
     ],
-    clients: [
-        { id: 101, name: "ישראל ישראלי" },
-        { id: 102, name: "שרה לוי" }
+    users: [
+        { id: 101, username: "israel", email: "israel@gmail.com", password: "123", borrowedBooks: [2] },
+        { id: 102, username: "sara", email: "sara@gmail.com", password: "456", borrowedBooks: [] }
     ]
 };
 
-module.exports =db ;
+module.exports = db;
