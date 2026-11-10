@@ -1,69 +1,74 @@
-const db = require('../DB/db');
+const Book = require('../models/book.model');
 
-const getAllBooks = (req, res) => {
-    let { page = 1, limit = 10, name, category } = req.query;
-    let results = [...db.books];
-
-    if (name) {
-        results = results.filter(b => b.name.includes(name));
+// קבלת כל הספרים
+const getAllBooks = async (req, res, next) => {
+    try {
+        const books = await Book.find();
+        res.status(200).json(books);
+    } catch (error) {
+        next(error);
     }
-    if (category) {
-        results = results.filter(b => b.category.includes(category));
+};
+
+// קבלת ספר לפי ID
+const getBookById = async (req, res, next) => {
+    try {
+        const book = await Book.findById(req.params.id);
+        if (!book) {
+            return res.status(404).json({ error: { message: 'Book not found' } });
+        }
+        res.status(200).json(book);
+    } catch (error) {
+        next(error);
     }
-
-    const startIndex = (parseInt(page) - 1) * parseInt(limit);
-    const endIndex = startIndex + parseInt(limit);
-    const paginatedBooks = results.slice(startIndex, endIndex);
-
-    res.status(200).json({
-        total: results.length,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        data: paginatedBooks
-    });
 };
 
-const getBookById = (req, res) => {
-    const bookId = parseInt(req.params.id);
-    const book = db.books.find(b => b.id === bookId);
-    if (!book) return res.status(404).json({ error: "הספר לא נמצא" });
-    res.status(200).json(book);
-};
-
-const createBook = (req, res) => {
-    const { name, category, price } = req.body;
-    if (!name || !category || !price) {
-        return res.status(400).json({ error: "נא לספק שם, קטגוריה ומחיר" });
+// הוספת ספר חדש
+const createBook = async (req, res, next) => {
+    try {
+        const newBook = new Book(req.body);
+        const savedBook = await newBook.save();
+        res.status(201).json(savedBook);
+    } catch (error) {
+        next(error);
     }
-    const newBook = {
-        id: db.books.length > 0 ? db.books[db.books.length - 1].id + 1 : 1,
-        name, category, price,
-        isBorrowed: false, borrowDate: null, clientId: null
-    };
-    db.books.push(newBook);
-    res.status(201).json(newBook);
 };
 
-const updateBook = (req, res) => {
-    const bookId = parseInt(req.params.id);
-    const bookIndex = db.books.findIndex(b => b.id === bookId);
-    if (bookIndex === -1) return res.status(404).json({ error: "הספר לא נמצא" });
-
-    const { name, category, price } = req.body;
-    if (name) db.books[bookIndex].name = name;
-    if (category) db.books[bookIndex].category = category;
-    if (price) db.books[bookIndex].price = price;
-
-    res.status(200).json(db.books[bookIndex]);
+// עדכון ספר לפי ID
+const updateBook = async (req, res, next) => {
+    try {
+        const updatedBook = await Book.findByIdAndUpdate(
+            req.params.id, 
+            req.body, 
+            { new: true, runValidators: true }
+        );
+        if (!updatedBook) {
+            return res.status(404).json({ error: { message: 'Book not found' } });
+        }
+        res.status(200).json(updatedBook);
+    } catch (error) {
+        next(error);
+    }
 };
 
-const deleteBook = (req, res) => {
-    const bookId = parseInt(req.params.id);
-    const bookIndex = db.books.findIndex(b => b.id === bookId);
-    if (bookIndex === -1) return res.status(404).json({ error: "הספר לא נמצא" });
-
-    const deletedBook = db.books.splice(bookIndex, 1);
-    res.status(200).json({ message: "הספר נמחק בהצלחה", deletedBook });
+// מחיקת ספר לפי ID
+const deleteBook = async (req, res, next) => {
+    try {
+        const deletedBook = await Book.findByIdAndDelete(req.params.id);
+        if (!deletedBook) {
+            return res.status(404).json({ error: { message: 'Book not found' } });
+        }
+        res.status(200).json({ message: 'Book deleted successfully' });
+    } catch (error) {
+        next(error);
+    }
 };
 
-module.exports = { getAllBooks, getBookById, createBook, updateBook, deleteBook };
+// ייצוא כל הפונקציות
+module.exports = {
+    getAllBooks,
+    getBookById,
+    createBook,
+    updateBook,
+    deleteBook
+};

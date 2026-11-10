@@ -13,7 +13,7 @@ const dateLogger = (req, res, next) => {
     const currentDate = new Date().toISOString();
     console.log(`[${currentDate}] - Request Method: ${req.method}, URL: ${req.url}`);
     next(); 
-
+}
 
 app.use(helmet());            
 app.use(morgan('dev'));    
@@ -22,7 +22,7 @@ app.use(express.json());
 
 
 app.use('/api', apiRoutes);
-
+app.use(express.static('public'));
 
 
 
@@ -51,8 +51,11 @@ app.use((err, req, res, next) => {
     });
 });
 
+const connectDB = require('./config/db');
+connectDB(); // הפעלת החיבור למסד הנתונים
 
 // הפעלת השרת
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
+
